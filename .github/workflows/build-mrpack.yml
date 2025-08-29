@@ -20,35 +20,49 @@ jobs:
     - name: Generate mrpack
       run: |
         mkdir -p build/overrides
-        cp -r .minecraft/* build/overrides/ 2>/dev/null || true
-        [ -d mods ] && cp -r mods build/overrides/
+        [ -d .minecraft ] && cp -r .minecraft/* build/overrides/ 2>/dev/null || true
         [ -d config ] && cp -r config build/overrides/
         [ -d resourcepacks ] && cp -r resourcepacks build/overrides/
         [ -d shaderpacks ] && cp -r shaderpacks build/overrides/
         [ -d scripts ] && cp -r scripts build/overrides/
         
-        cat > build/modrinth.index.json << 'EOF'
-        {
-          "formatVersion": 1,
-          "game": "minecraft",
-          "versionId": "${{ github.sha }}",
-          "name": "${{ github.event.repository.name }}",
-          "summary": "Generated from PrismLauncher instance",
-          "files": [],
-          "dependencies": {
-            "minecraft": "1.20.1",
-            "fabric-loader": "0.14.21"
-          }
-        }
-        EOF
-        
+        FILES_JSON="[]"
         if [ -f mmc-pack.json ]; then
-          MC_VERSION=$(jq -r '.components[] | select(.uid=="net.minecraft") | .version' mmc-pack.json 2>/dev/null || echo "1.20.1")
-          LOADER=$(jq -r '.components[] | select(.uid | startswith("net.fabricmc")) | .uid' mmc-pack.json 2>/dev/null || echo "fabric-loader")
-          LOADER_VERSION=$(jq -r '.components[] | select(.uid | startswith("net.fabricmc")) | .version' mmc-pack.json 2>/dev/null || echo "0.14.21")
+          MC_VERSION=$(jq -r '.components[] | select(.uid=="net.minecraft") | .version // "1.20.1"' mmc-pack.json)
+          LOADER_VERSION=$(jq -r '.components[] | select(.uid | contains("fabric")) | .version // "0.14.21"' mmc-pack.json)
           
-          jq --arg mc "$MC_VERSION" --arg loader "$LOADER_VERSION" '.dependencies.minecraft = $mc | .dependencies["fabric-loader"] = $loader' build/modrinth.index.json > tmp.json && mv tmp.json build/modrinth.index.json
+          FILES_JSON=$(python3 << 'PYEOF'
+import json, os, hashlib
+files = []
+if os.path.exists("mods"):
+  for mod in os.listdir("mods"):
+    if mod.endswith('.jar'):
+      path = f"mods/{mod}"
+      with open(path, "rb") as f: h = hashlib.sha1(f.read()).hexdigest()
+      size = os.path.getsize(path)
+      files.append({"path": f"mods/{mod}", "hashes": {"sha1": h}, "fileSize": size, "downloads": []})
+print(json.dumps(files))
+PYEOF
+          )
+        else
+          MC_VERSION="1.20.1"
+          LOADER_VERSION="0.14.21"
         fi
+        
+        cat > build/modrinth.index.json << EOF
+{
+  "formatVersion": 1,
+  "game": "minecraft",
+  "versionId": "${{ github.sha }}",
+  "name": "${{ github.event.repository.name }}",
+  "summary": "Generated from PrismLauncher instance",
+  "files": $FILES_JSON,
+  "dependencies": {
+    "minecraft": "$MC_VERSION",
+    "fabric-loader": "$LOADER_VERSION"
+  }
+}
+EOF
         
         cd build && zip -r "../${{ github.event.repository.name }}-${{ github.sha }}.mrpack" .
     
