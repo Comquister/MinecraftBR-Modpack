@@ -23,11 +23,7 @@ jobs:
     - name: Generate mrpack
       run: |
         mkdir -p build/overrides
-        [ -d minecraft/mods ] && cp -r minecraft/mods build/overrides/
-        [ -d minecraft/config ] && cp -r minecraft/config build/overrides/
-        [ -d minecraft/resourcepacks ] && cp -r minecraft/resourcepacks build/overrides/
-        [ -d minecraft/shaderpacks ] && cp -r minecraft/shaderpacks build/overrides/
-        [ -f minecraft/options.txt ] && cp minecraft/options.txt build/overrides/
+        [ -d minecraft ] && cp -r minecraft/ build/overrides/
         
         MC_VERSION="1.20.1"
         LOADER_VERSION="0.14.21"
