@@ -23,7 +23,7 @@ jobs:
     - name: Generate mrpack
       run: |
         mkdir -p build/overrides
-        [ -d minecraft ] && cp -r minecraft/ build/overrides/
+        [ -d minecraft ] && cp -r minecraft/* build/overrides/
         
         MC_VERSION="1.20.1"
         LOADER_VERSION="0.14.21"
