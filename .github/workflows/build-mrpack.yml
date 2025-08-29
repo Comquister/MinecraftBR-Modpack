@@ -35,7 +35,7 @@ jobs:
         
         jq -n --arg sha "${{ github.sha }}" --arg name "${{ github.event.repository.name }}" --arg mc "$MC_VERSION" --arg loader "$LOADER_VERSION" '{"formatVersion": 1, "game": "minecraft", "versionId": $sha, "name": $name, "summary": "Generated from PrismLauncher instance", "files": [], "dependencies": {"minecraft": $mc, "fabric-loader": $loader}}' > build/modrinth.index.json
         
-        cd build && zip -r "../${{ github.event.repository.name }}-${{ github.sha }}.mrpack" .
+        cd build && zip -r "../${{ github.event.repository.name }}.mrpack" .
     
     - name: Upload mrpack
       uses: actions/upload-artifact@v4
