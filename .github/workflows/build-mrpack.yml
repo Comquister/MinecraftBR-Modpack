@@ -27,29 +27,15 @@ jobs:
         [ -d scripts ] && cp -r scripts build/overrides/
         
         FILES_JSON="[]"
+        MC_VERSION="1.20.1"
+        LOADER_VERSION="0.14.21"
+        
         if [ -f mmc-pack.json ]; then
           MC_VERSION=$(jq -r '.components[] | select(.uid=="net.minecraft") | .version // "1.20.1"' mmc-pack.json)
-          LOADER_VERSION=$(jq -r '.components[] | select(.uid | contains("fabric")) | .version // "0.14.21"' mmc-pack.json)
-          
-          FILES_JSON=$(python3 << 'PYEOF'
-import json, os, hashlib
-files = []
-if os.path.exists("mods"):
-  for mod in os.listdir("mods"):
-    if mod.endswith('.jar'):
-      path = f"mods/{mod}"
-      with open(path, "rb") as f: h = hashlib.sha1(f.read()).hexdigest()
-      size = os.path.getsize(path)
-      files.append({"path": f"mods/{mod}", "hashes": {"sha1": h}, "fileSize": size, "downloads": []})
-print(json.dumps(files))
-PYEOF
-          )
-        else
-          MC_VERSION="1.20.1"
-          LOADER_VERSION="0.14.21"
+          LOADER_VERSION=$(jq -r '.components[] | select(.uid=="net.fabricmc.fabric-loader") | .version // "0.14.21"' mmc-pack.json)
         fi
         
-        cat > build/modrinth.index.json << EOF
+        cat > build/modrinth.index.json << 'EOF'
 {
   "formatVersion": 1,
   "game": "minecraft",
@@ -62,7 +48,7 @@ PYEOF
     "fabric-loader": "$LOADER_VERSION"
   }
 }
-EOF
+'EOF'
         
         cd build && zip -r "../${{ github.event.repository.name }}-${{ github.sha }}.mrpack" .
     
