@@ -35,20 +35,7 @@ jobs:
           LOADER_VERSION=$(jq -r '.components[] | select(.uid=="net.fabricmc.fabric-loader") | .version // "0.14.21"' mmc-pack.json)
         fi
         
-        cat > build/modrinth.index.json << 'EOF'
-{
-  "formatVersion": 1,
-  "game": "minecraft",
-  "versionId": "${{ github.sha }}",
-  "name": "${{ github.event.repository.name }}",
-  "summary": "Generated from PrismLauncher instance",
-  "files": $FILES_JSON,
-  "dependencies": {
-    "minecraft": "$MC_VERSION",
-    "fabric-loader": "$LOADER_VERSION"
-  }
-}
-'EOF'
+        jq -n --arg sha "${{ github.sha }}" --arg name "${{ github.event.repository.name }}" --arg mc "$MC_VERSION" --arg loader "$LOADER_VERSION" '{"formatVersion": 1, "game": "minecraft", "versionId": $sha, "name": $name, "summary": "Generated from PrismLauncher instance", "files": [], "dependencies": {"minecraft": $mc, "fabric-loader": $loader}}' > build/modrinth.index.json
         
         cd build && zip -r "../${{ github.event.repository.name }}-${{ github.sha }}.mrpack" .
     
