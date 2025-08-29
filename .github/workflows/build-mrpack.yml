@@ -1,0 +1,69 @@
+name: Generate Modrinth Pack
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+    
+    - name: Generate mrpack
+      run: |
+        mkdir -p build/overrides
+        cp -r .minecraft/* build/overrides/ 2>/dev/null || true
+        [ -d mods ] && cp -r mods build/overrides/
+        [ -d config ] && cp -r config build/overrides/
+        [ -d resourcepacks ] && cp -r resourcepacks build/overrides/
+        [ -d shaderpacks ] && cp -r shaderpacks build/overrides/
+        [ -d scripts ] && cp -r scripts build/overrides/
+        
+        cat > build/modrinth.index.json << 'EOF'
+        {
+          "formatVersion": 1,
+          "game": "minecraft",
+          "versionId": "${{ github.sha }}",
+          "name": "${{ github.event.repository.name }}",
+          "summary": "Generated from PrismLauncher instance",
+          "files": [],
+          "dependencies": {
+            "minecraft": "1.20.1",
+            "fabric-loader": "0.14.21"
+          }
+        }
+        EOF
+        
+        if [ -f mmc-pack.json ]; then
+          MC_VERSION=$(jq -r '.components[] | select(.uid=="net.minecraft") | .version' mmc-pack.json 2>/dev/null || echo "1.20.1")
+          LOADER=$(jq -r '.components[] | select(.uid | startswith("net.fabricmc")) | .uid' mmc-pack.json 2>/dev/null || echo "fabric-loader")
+          LOADER_VERSION=$(jq -r '.components[] | select(.uid | startswith("net.fabricmc")) | .version' mmc-pack.json 2>/dev/null || echo "0.14.21")
+          
+          jq --arg mc "$MC_VERSION" --arg loader "$LOADER_VERSION" '.dependencies.minecraft = $mc | .dependencies["fabric-loader"] = $loader' build/modrinth.index.json > tmp.json && mv tmp.json build/modrinth.index.json
+        fi
+        
+        cd build && zip -r "../${{ github.event.repository.name }}-${{ github.sha }}.mrpack" .
+    
+    - name: Upload mrpack
+      uses: actions/upload-artifact@v4
+      with:
+        name: modrinth-pack
+        path: "*.mrpack"
+    
+    - name: Release
+      if: github.ref == 'refs/heads/main'
+      uses: softprops/action-gh-release@v1
+      with:
+        tag_name: v${{ github.run_number }}
+        files: "*.mrpack"
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

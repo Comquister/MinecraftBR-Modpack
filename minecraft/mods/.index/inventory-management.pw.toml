@@ -1,0 +1,16 @@
+filename = 'inventorymanagement-1.6.0+1.21.6.jar'
+name = 'Inventory Management'
+side = 'both'
+x-prismlauncher-loaders = [ 'quilt', 'fabric' ]
+x-prismlauncher-mc-versions = [ '1.21.6', '1.21.7', '1.21.8' ]
+x-prismlauncher-release-type = 'release'
+
+[download]
+hash = 'b82678e228db1b8d2e85e5c9d49380efe99e35259d9d5c0b12b89598371e3578649bd8e413e33f420df5b5ee919a78735cf5df77acf7a6f7abf01dc4258e674a'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/F7wXag4i/versions/sq1lxU3z/inventorymanagement-1.6.0%2B1.21.6.jar'
+
+[update.modrinth]
+mod-id = 'F7wXag4i'
+version = 'sq1lxU3z'

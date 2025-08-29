@@ -1,0 +1,16 @@
+filename = 'wakes-0.4.2+1.21.8.jar'
+name = 'Wakes'
+side = 'client'
+x-prismlauncher-loaders = [ 'fabric' ]
+x-prismlauncher-mc-versions = [ '1.21.6', '1.21.7', '1.21.8' ]
+x-prismlauncher-release-type = 'beta'
+
+[download]
+hash = 'ace91473cf28274842bb9e4ad4f5efda3f40eddfe85c883e7bab5925300d4da011c8afdd969639db70978e851764faba3b464885a439e6fbce66e3b2cd48ccef'
+hash-format = 'sha512'
+mode = 'url'
+url = 'https://cdn.modrinth.com/data/dlNu0RQY/versions/S1uOvPJN/wakes-0.4.2%2B1.21.8.jar'
+
+[update.modrinth]
+mod-id = 'dlNu0RQY'
+version = 'S1uOvPJN'
